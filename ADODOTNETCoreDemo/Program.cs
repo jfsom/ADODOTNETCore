@@ -9,8 +9,8 @@ namespace ADODOTNETCoreDemo
             {
                 //I am using Windows Authentication and hence no need to pass the User Id and Password
                 string connectionString = "Server=DESKTOP-RUC57UF;Database=StudentDB;Trusted_Connection=True;TrustServerCertificate=True;";
-                // SQL query to retrieve all records
-                string sqlQuery = "SELECT * FROM Students";
+                // SQL query to retrieve a specific record
+                string sqlQuery = "SELECT * FROM Students WHERE Id = '1'";
 
                 //While Creating the SqlConnection passing the Connection String
                 using (SqlConnection connection = new SqlConnection(connectionString))
