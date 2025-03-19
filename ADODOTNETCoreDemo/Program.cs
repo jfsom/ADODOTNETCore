@@ -7,9 +7,9 @@ namespace ADODOTNETCoreDemo
         {
             try
             {
-                //I am using Windows Authentication and hence no need to pass the User Id and Password
+                //Connection String
                 string connectionString = "Server=DESKTOP-RUC57UF;Database=StudentDB;Trusted_Connection=True;TrustServerCertificate=True;";
-                //Using SqlConnection Constructor which takes connectionString as a parameter
+                //Creating an Instance of SqlConnection using the using statement
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     //Open the Connection
@@ -17,7 +17,7 @@ namespace ADODOTNETCoreDemo
 
                     //Use the Connection
                     Console.WriteLine("Connection Established Successfully");
-                } //Automatically using block close the connection even if exception has been occurred
+                } //Automatically close the connection even if an exception is raised
             }
             catch (Exception ex)
             {
