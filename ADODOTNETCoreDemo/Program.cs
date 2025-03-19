@@ -9,8 +9,8 @@ namespace ADODOTNETCoreDemo
             {
                 //I am using Windows Authentication and hence no need to pass the User Id and Password
                 string connectionString = "Server=DESKTOP-RUC57UF;Database=StudentDB;Trusted_Connection=True;TrustServerCertificate=True;";
-                // SQL query to retrieve a specific record
-                string sqlQuery = "SELECT * FROM Students WHERE Id = '1'";
+                // SQL query to delete a record
+                string sqlQuery = "DELETE FROM Students WHERE Id = @Id";
 
                 //While Creating the SqlConnection passing the Connection String
                 using (SqlConnection connection = new SqlConnection(connectionString))
@@ -20,12 +20,20 @@ namespace ADODOTNETCoreDemo
 
                     using (SqlCommand command = new SqlCommand(sqlQuery, connection))
                     {
-                        using (SqlDataReader reader = command.ExecuteReader())
+                        // Replace @Id with the actual id of the record you want to delete
+                        command.Parameters.AddWithValue("@Id", 1);
+
+                        //Execute the Delete Query
+                        int result = command.ExecuteNonQuery();
+
+                        // Check if the delete operation was successful
+                        if (result > 0)
                         {
-                            while (reader.Read())
-                            {
-                                Console.WriteLine($"Id: {reader["Id"]}, First Name: {reader["FirstName"]}, Last Name: {reader["LastName"]}, Email: {reader["Email"]}");
-                            }
+                            Console.WriteLine("Record Deleted Successfully.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("No Record Found with the Specified Id.");
                         }
                     }
                 }
