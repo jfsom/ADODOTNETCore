@@ -1,2 +1,0 @@
-# ADODOTNETCore
-ADO DOT NET Core
