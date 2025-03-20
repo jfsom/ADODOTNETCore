@@ -5,58 +5,32 @@ namespace ADODOTNETCoreDemo
     {
         static void Main(string[] args)
         {
-            Dictionary<int, Customer> customers = new Dictionary<int, Customer>();
             string connectionString = "Server=DESKTOP-RUC57UF;Database=OrderDatabase;Trusted_Connection=True;TrustServerCertificate=True;";
             try
             {
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
+                    // Open the connection to the database
                     connection.Open();
 
-                    // Fetch customers
-                    string customerQuery = "SELECT * FROM Customers;";
-                    using (SqlCommand customerCommand = new SqlCommand(customerQuery, connection))
+                    // Modify the query to join Customers and Orders tables
+                    string query = @"SELECT c.CustomerID, c.Name, c.Email, c.Address, 
+                                    o.OrderID, o.OrderDate, o.TotalAmount 
+                                    FROM Customers c 
+                                    JOIN Orders o ON c.CustomerID = o.CustomerID;";
+
+                    //Create the Command Object
+                    using (SqlCommand command = new SqlCommand(query, connection))
                     {
-                        using (SqlDataReader customerReader = customerCommand.ExecuteReader())
+                        //SqlDataReader will have both result set
+                        using (SqlDataReader reader = command.ExecuteReader())
                         {
-                            while (customerReader.Read())
+                            Console.WriteLine("Customer and Orders:");
+                            while (reader.Read())
                             {
-                                var customer = new Customer
-                                {
-                                    CustomerID = (int)customerReader["CustomerID"],
-                                    Name = customerReader["Name"].ToString(),
-                                    Email = customerReader["Email"].ToString(),
-                                    Address = customerReader["Address"].ToString()
-                                };
-                                customers.Add(customer.CustomerID, customer);
-                            }
-                        }
-                    }
-
-                    Console.WriteLine("Customer and Orders:");
-
-                    // Fetch orders and match with customers
-                    string orderQuery = "SELECT * FROM Orders;";
-                    using (SqlCommand orderCommand = new SqlCommand(orderQuery, connection))
-                    {
-                        using (SqlDataReader orderReader = orderCommand.ExecuteReader())
-                        {
-                            while (orderReader.Read())
-                            {
-                                var order = new Order
-                                {
-                                    OrderID = (int)orderReader["OrderID"],
-                                    CustomerID = (int)orderReader["CustomerID"],
-                                    OrderDate = (DateTime)orderReader["OrderDate"],
-                                    TotalAmount = (decimal)orderReader["TotalAmount"]
-                                };
-
-                                // Match order with customer
-                                if (customers.TryGetValue(order.CustomerID, out Customer customer))
-                                {
-                                    Console.WriteLine($"CustomerID: {customer.CustomerID}, Name: {customer.Name}, Email: {customer.Email}, Address: {customer.Address}");
-                                    Console.WriteLine($"\tOrderID: {order.OrderID}, OrderDate: {order.OrderDate}, TotalAmount: {order.TotalAmount}");
-                                }
+                                // Assuming you are okay with repeating customer info for each order
+                                Console.WriteLine($"CustomerID: {reader["CustomerID"]}, Name: {reader["Name"]}, Email: {reader["Email"]}, Address: {reader["Address"]}");
+                                Console.WriteLine($"\t OrderID: {reader["OrderID"]}, OrderDate: {reader["OrderDate"]}, TotalAmount: {reader["TotalAmount"]}");
                             }
                         }
                     }
