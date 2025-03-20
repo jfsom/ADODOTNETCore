@@ -3,61 +3,40 @@ namespace ADODOTNETCoreDemo
 {
     internal class Program
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
-            try
+            //The connectionString contains information needed to establish a connection to the database,
+            //including the server name, database name, and authentication method.
+            string connectionString = "Server=DESKTOP-RUC57UF;Database=EmployeeDB;Trusted_Connection=True;TrustServerCertificate=True;";
+
+            //Creating an instance of SqlConnection. It's instantiated with the connection string.
+            //Using block will ensures that the SQLConnection is disposed of correctly once it goes out of scope,
+            //which closes the connection to the database.
+            using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                //I am using Windows Authentication and hence no need to pass the User Id and Password
-                string connectionString = "Server=DESKTOP-RUC57UF;Database=EmployeeDB;Trusted_Connection=True;TrustServerCertificate=True;";
+                //Opening the Connection
+                connection.Open();
 
-                // Query to Read All Employees Using ExecuteReader
-                string readQuery = "SELECT * FROM Employee";
+                //A string containing the SQL query to be executed.
+                //This query selects all columns from the Employees table.
+                string sql = "SELECT EmployeeID, FirstName, LastName, Email, Department FROM Employees";
 
-                // Query to Insert a New Employee using ExecuteNonQuery
-                string insertQuery = "INSERT INTO Employee (FirstName, LastName, Email, Position, Salary) VALUES ('Ramesh', 'Sahoo', 'Ramesh@Example.com', 'HR Manager', 70000)";
+                //Represents an SQL statement that can be executed against an SQL Server database.
+                //It is initialized with the SQL query and the connection object.
+                SqlCommand command = new SqlCommand(sql, connection);
 
-                // Query to Get count of Employees using ExecuteScalar
-                string countQuery = "SELECT COUNT(*) FROM Employee";
-
-                //Create an Instance of SqlConnection
-                using (SqlConnection connection = new SqlConnection(connectionString))
+                //ExecuteReader Executes the SqlCommand and returns an SqlDataReader object to read the data returned by the query.
+                //SqlDataReader read a forward-only stream of rows from a SQL Server database
+                using (SqlDataReader reader = command.ExecuteReader())
                 {
-                    await connection.OpenAsync();
-
-                    // ExecuteReaderAsync
-                    Console.WriteLine("ExecuteReaderAsync Example");
-                    using (SqlCommand command = new SqlCommand(readQuery, connection))
+                    //Advances the SqlDataReader to the next record. It returns true if there are more rows; otherwise, it is false.
+                    while (reader.Read())
                     {
-                        using (SqlDataReader reader = await command.ExecuteReaderAsync())
-                        {
-                            while (reader.Read())
-                            {
-                                Console.WriteLine($"ID: {reader["EmployeeID"]}, Name: {reader["FirstName"]} {reader["LastName"]}, Email: {reader["Email"]}, Position: {reader["Position"]}, Salary: {reader["Salary"]}");
-                            }
-                        }
-                    }
-
-                    // ExecuteNonQueryAsync 
-                    Console.WriteLine("\nExecuteNonQueryAsync Example");
-                    using (SqlCommand command = new SqlCommand(insertQuery, connection))
-                    {
-                        int result = await command.ExecuteNonQueryAsync();
-                        Console.WriteLine($"{result} row(s) Inserted");
-                    }
-
-                    // ExecuteScalarAsync 
-                    Console.WriteLine("\nExecuteScalarAsync Example");
-                    using (SqlCommand command = new SqlCommand(countQuery, connection))
-                    {
-                        int count = (int)await command.ExecuteScalarAsync();
-                        Console.WriteLine($"Total Employees: {count}");
+                        //Accessed Data by column name
+                        Console.WriteLine($"ID: {reader["EmployeeID"]}, Name: {reader["FirstName"]} {reader["LastName"]}, Email: {reader["Email"]}, Department: {reader["Department"]}");
                     }
                 }
                 Console.ReadLine();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Something went wrong: {ex.Message}");
             }
         }
     }
