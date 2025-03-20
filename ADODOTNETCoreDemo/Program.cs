@@ -11,49 +11,86 @@ namespace ADODOTNETCoreDemo
                 //I am using Windows Authentication and hence no need to pass the User Id and Password
                 string connectionString = "Server=DESKTOP-RUC57UF;Database=EmployeeDB;Trusted_Connection=True;TrustServerCertificate=True;";
 
-                //Prepare the Query
-                string selectQuery = "SELECT * FROM Employees";
-
                 //Create an Instance of SqlConnection
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    //Create the SqlDataAdapter Object with the Select Query and Connection Object
-                    SqlDataAdapter dataAdapter = new SqlDataAdapter(selectQuery, connection);
+                    SqlDataAdapter dataAdapter = new SqlDataAdapter();
 
-                    // Creating the commands that will be used by the SqlDataAdapter to update the database
+                    // Setting up the SelectCommand
+                    dataAdapter.SelectCommand = new SqlCommand("SELECT * FROM Employees", connection);
+
+                    // Setting up the InsertCommand
+                    SqlCommand insertCommand = new SqlCommand("INSERT INTO Employees (FirstName, LastName, Email, Department) VALUES (@FirstName, @LastName, @Email, @Department)", connection);
+                    insertCommand.Parameters.Add("@FirstName", SqlDbType.NVarChar, 50, "FirstName");
+                    insertCommand.Parameters.Add("@LastName", SqlDbType.NVarChar, 50, "LastName");
+                    insertCommand.Parameters.Add("@Email", SqlDbType.NVarChar, 100, "Email");
+                    insertCommand.Parameters.Add("@Department", SqlDbType.NVarChar, 50, "Department");
+                    dataAdapter.InsertCommand = insertCommand;
+
+                    // Setting up the UpdateCommand
                     SqlCommand updateCommand = new SqlCommand("UPDATE Employees SET FirstName = @FirstName, LastName = @LastName, Email = @Email, Department = @Department WHERE EmployeeID = @EmployeeID", connection);
-
-                    // Adding parameters for the update command
                     updateCommand.Parameters.Add("@FirstName", SqlDbType.NVarChar, 50, "FirstName");
                     updateCommand.Parameters.Add("@LastName", SqlDbType.NVarChar, 50, "LastName");
                     updateCommand.Parameters.Add("@Email", SqlDbType.NVarChar, 100, "Email");
                     updateCommand.Parameters.Add("@Department", SqlDbType.NVarChar, 50, "Department");
                     updateCommand.Parameters.Add("@EmployeeID", SqlDbType.Int, 0, "EmployeeID");
-
                     dataAdapter.UpdateCommand = updateCommand;
 
-                    DataTable dataTable = new DataTable();
+                    // Setting up the DeleteCommand
+                    SqlCommand deleteCommand = new SqlCommand("DELETE FROM Employees WHERE EmployeeID = @EmployeeID", connection);
+                    deleteCommand.Parameters.Add("@EmployeeID", SqlDbType.Int, 0, "EmployeeID");
+                    dataAdapter.DeleteCommand = deleteCommand;
 
-                    // Fill the DataTable with data from the database
+                    DataTable dataTable = new DataTable();
+                    dataAdapter.MissingSchemaAction = MissingSchemaAction.AddWithKey; // Manage schema actions
+                    dataAdapter.FillSchema(dataTable, SchemaType.Source); // Ensure schema is correct
+
+                    // Fill the DataTable with current data
                     dataAdapter.Fill(dataTable);
 
-                    // Assuming you want to update the first row's Email for demonstration
+                    // Demonstrating AcceptChangesDuringFill
+                    dataAdapter.AcceptChangesDuringFill = false;
+
+                    // Insert a new row (example)
+                    DataRow newRow = dataTable.NewRow();
+                    newRow["FirstName"] = "New";
+                    newRow["LastName"] = "Employee";
+                    newRow["Email"] = "new.employee@example.com";
+                    newRow["Department"] = "IT";
+                    dataTable.Rows.Add(newRow);
+
+                    // Update an existing row (example)
                     if (dataTable.Rows.Count > 0)
                     {
                         DataRow rowToUpdate = dataTable.Rows[0];
-                        rowToUpdate["Email"] = "updated.email@example1.com";
+                        rowToUpdate["Email"] = "updated.email@example.com";
                     }
 
-                    // Open the connection for the update
+                    // Delete a row (example)
+                    if (dataTable.Rows.Count > 1)
+                    {
+                        dataTable.Rows[1].Delete();
+                    }
+
+                    // Handling errors during update
+                    dataAdapter.ContinueUpdateOnError = true;
+
+                    // Update the database
                     connection.Open();
-
-                    // Perform the update on the database
-                    int rowsAffected = dataAdapter.Update(dataTable);
-
-                    // Close the connection
+                    dataAdapter.Update(dataTable);
                     connection.Close();
 
-                    Console.WriteLine($"{rowsAffected} row(s) were updated.");
+                    // Demonstrating AcceptChangesDuringUpdate
+                    dataAdapter.AcceptChangesDuringUpdate = true;
+
+                    // Check for errors
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        if (row.HasErrors)
+                        {
+                            Console.WriteLine($"Row error: {row.RowError}");
+                        }
+                    }
                 }
             }
             catch (Exception ex)
