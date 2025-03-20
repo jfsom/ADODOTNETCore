@@ -3,53 +3,61 @@ namespace ADODOTNETCoreDemo
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            string connectionString = "Server=DESKTOP-RUC57UF;Database=EmployeeDB;Trusted_Connection=True;TrustServerCertificate=True;";
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            try
             {
-                connection.Open();
-                try
+                //I am using Windows Authentication and hence no need to pass the User Id and Password
+                string connectionString = "Server=DESKTOP-RUC57UF;Database=EmployeeDB;Trusted_Connection=True;TrustServerCertificate=True;";
+
+                // Query to Read All Employees Using ExecuteReader
+                string readQuery = "SELECT * FROM Employee";
+
+                // Query to Insert a New Employee using ExecuteNonQuery
+                string insertQuery = "INSERT INTO Employee (FirstName, LastName, Email, Position, Salary) VALUES ('Ramesh', 'Sahoo', 'Ramesh@Example.com', 'HR Manager', 70000)";
+
+                // Query to Get count of Employees using ExecuteScalar
+                string countQuery = "SELECT COUNT(*) FROM Employee";
+
+                //Create an Instance of SqlConnection
+                using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    // Step 1: Start a SQL transaction.
-                    using (SqlTransaction transaction = connection.BeginTransaction())
+                    await connection.OpenAsync();
+
+                    // ExecuteReaderAsync
+                    Console.WriteLine("ExecuteReaderAsync Example");
+                    using (SqlCommand command = new SqlCommand(readQuery, connection))
                     {
-                        try
+                        using (SqlDataReader reader = await command.ExecuteReaderAsync())
                         {
-                            // Step 2: Create and Execute a SqlCommand
-                            string cmdText = @"INSERT INTO Employee (FirstName, LastName, Email, Position, Salary) VALUES (@FirstName, @LastName, @Email, @Position, @Salary)";
-
-                            using (SqlCommand command = new SqlCommand(cmdText, connection, transaction))
+                            while (reader.Read())
                             {
-                                // Add parameters to prevent SQL injection
-                                command.Parameters.AddWithValue("@FirstName", "Rakesh");
-                                command.Parameters.AddWithValue("@LastName", "Sharma");
-                                command.Parameters.AddWithValue("@Email", "Rakesh@Example.com");
-                                command.Parameters.AddWithValue("@Position", "DBA");
-                                command.Parameters.AddWithValue("@Salary", 10000);
-
-                                // Execute the command
-                                int result = command.ExecuteNonQuery();
-                                Console.WriteLine("Rows affected: " + result);
-
-                                // Step 3: Commit the Transaction
-                                transaction.Commit();
+                                Console.WriteLine($"ID: {reader["EmployeeID"]}, Name: {reader["FirstName"]} {reader["LastName"]}, Email: {reader["Email"]}, Position: {reader["Position"]}, Salary: {reader["Salary"]}");
                             }
                         }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine("An exception occurred. Transaction rolled back.");
-                            Console.WriteLine(ex.Message);
+                    }
 
-                            // Rollback the transaction in case of an error
-                            transaction.Rollback();
-                        }
+                    // ExecuteNonQueryAsync 
+                    Console.WriteLine("\nExecuteNonQueryAsync Example");
+                    using (SqlCommand command = new SqlCommand(insertQuery, connection))
+                    {
+                        int result = await command.ExecuteNonQueryAsync();
+                        Console.WriteLine($"{result} row(s) Inserted");
+                    }
+
+                    // ExecuteScalarAsync 
+                    Console.WriteLine("\nExecuteScalarAsync Example");
+                    using (SqlCommand command = new SqlCommand(countQuery, connection))
+                    {
+                        int count = (int)await command.ExecuteScalarAsync();
+                        Console.WriteLine($"Total Employees: {count}");
                     }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Something Went Wrong: {ex.Message}");
-                }
+                Console.ReadLine();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Something went wrong: {ex.Message}");
             }
         }
     }
