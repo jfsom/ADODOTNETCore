@@ -8,10 +8,10 @@ namespace ADODOTNETCoreDemo
             try
             {
                 string connectionString = "Server=DESKTOP-RUC57UF;Database=EmployeeDB;Trusted_Connection=True;TrustServerCertificate=True;";
+                string sqlQuery = "SELECT COUNT(*) FROM Employee";
 
-                using (SqlCommand command = new SqlCommand())
+                using (SqlCommand command = new SqlCommand(sqlQuery))
                 {
-                    command.CommandText = "SELECT COUNT(*) FROM Employee";
                     command.Connection = new SqlConnection(connectionString);
                     command.Connection.Open();
 
