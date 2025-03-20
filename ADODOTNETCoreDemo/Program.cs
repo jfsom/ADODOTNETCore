@@ -31,6 +31,7 @@ namespace ADODOTNETCoreDemo
                         }
                     } //Command Object will be disposed automatically
                 } //Connection Object will be disposed automatically
+                Console.ReadLine();
             }
             catch (Exception ex)
             {
