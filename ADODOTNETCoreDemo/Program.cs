@@ -12,38 +12,48 @@ namespace ADODOTNETCoreDemo
                 string connectionString = "Server=DESKTOP-RUC57UF;Database=EmployeeDB;Trusted_Connection=True;TrustServerCertificate=True;";
 
                 //Prepare the Query
-                string query = "SELECT * FROM Employees";
+                string selectQuery = "SELECT * FROM Employees";
 
                 //Create an Instance of SqlConnection
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    try
+                    //Create the SqlDataAdapter Object with the Select Query and Connection Object
+                    SqlDataAdapter dataAdapter = new SqlDataAdapter(selectQuery, connection);
+
+                    // Creating the commands that will be used by the SqlDataAdapter to update the database
+                    SqlCommand updateCommand = new SqlCommand("UPDATE Employees SET FirstName = @FirstName, LastName = @LastName, Email = @Email, Department = @Department WHERE EmployeeID = @EmployeeID", connection);
+
+                    // Adding parameters for the update command
+                    updateCommand.Parameters.Add("@FirstName", SqlDbType.NVarChar, 50, "FirstName");
+                    updateCommand.Parameters.Add("@LastName", SqlDbType.NVarChar, 50, "LastName");
+                    updateCommand.Parameters.Add("@Email", SqlDbType.NVarChar, 100, "Email");
+                    updateCommand.Parameters.Add("@Department", SqlDbType.NVarChar, 50, "Department");
+                    updateCommand.Parameters.Add("@EmployeeID", SqlDbType.Int, 0, "EmployeeID");
+
+                    dataAdapter.UpdateCommand = updateCommand;
+
+                    DataTable dataTable = new DataTable();
+
+                    // Fill the DataTable with data from the database
+                    dataAdapter.Fill(dataTable);
+
+                    // Assuming you want to update the first row's Email for demonstration
+                    if (dataTable.Rows.Count > 0)
                     {
-                        //Create an Instance of SqlDataAdapter with the Query and Connection
-                        SqlDataAdapter dataAdapter = new SqlDataAdapter(query, connection);
-
-                        //Create a Data table
-                        DataTable dataTable = new DataTable();
-
-                        //Fill the Datatable using the Fill Method of the dataAdapter 
-                        //The following things are done by the Fill method
-                        //1. Open the connection
-                        //2. Execute Command
-                        //3. Retrieve the Result
-                        //4. Fill/Store the Retrieve Result in the Data table
-                        //5. Close the connection
-                        dataAdapter.Fill(dataTable);
-
-                        //Display the Data from the Data table
-                        foreach (DataRow row in dataTable.Rows)
-                        {
-                            Console.WriteLine($"ID: {row["EmployeeID"]}, Name: {row["FirstName"]} {row["LastName"]}, Email: {row["Email"]}, Department: {row["Department"]}");
-                        }
+                        DataRow rowToUpdate = dataTable.Rows[0];
+                        rowToUpdate["Email"] = "updated.email@example1.com";
                     }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"An error occurred: {ex.Message}");
-                    }
+
+                    // Open the connection for the update
+                    connection.Open();
+
+                    // Perform the update on the database
+                    int rowsAffected = dataAdapter.Update(dataTable);
+
+                    // Close the connection
+                    connection.Close();
+
+                    Console.WriteLine($"{rowsAffected} row(s) were updated.");
                 }
             }
             catch (Exception ex)
