@@ -1,43 +1,48 @@
 ﻿using Microsoft.Data.SqlClient;
+using System.Data;
 namespace ADODOTNETCoreDemo
 {
     internal class Program
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             try
             {
                 //I am using Windows Authentication and hence no need to pass the User Id and Password
-                string connectionString = "Server=DESKTOP-RUC57UF;Database=OrderDatabase;Trusted_Connection=True;TrustServerCertificate=True;";
+                string connectionString = "Server=DESKTOP-RUC57UF;Database=EmployeeDB;Trusted_Connection=True;TrustServerCertificate=True;";
 
-                // Define the SQL query to be executed
-                string query = "SELECT * FROM Customers";
+                //Prepare the Query
+                string query = "SELECT * FROM Employees";
 
-                // Create and open a connection asynchronously
+                //Create an Instance of SqlConnection
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    //Open the Connection
-                    await connection.OpenAsync();
-
-                    // Create a SqlCommand to execute the SQL query
-                    using (SqlCommand command = new SqlCommand(query, connection))
+                    try
                     {
-                        // Execute the command and get a SqlDataReader asynchronously
-                        using (SqlDataReader reader = await command.ExecuteReaderAsync())
-                        {
-                            // Read the data asynchronously
-                            while (await reader.ReadAsync())
-                            {
-                                // Assuming Column1 is of type int and Column2 is of type string
-                                int column1 = reader.GetInt32(0); //EmployeeID - Type INT
-                                string column2 = reader.GetString(1); //FirstName - Type String
-                                string column3 = reader.GetString(2); //LastName - Type String
-                                string column4 = reader.GetString(3); //Email - Type String
-                                //string column5 = reader.GetString(4); //Department - Type String
+                        //Create an Instance of SqlDataAdapter with the Query and Connection
+                        SqlDataAdapter dataAdapter = new SqlDataAdapter(query, connection);
 
-                                Console.WriteLine($"EmployeeID: {column1}, FirstName: {column2}, LastName: {column3}, Email: {column4}");
-                            }
+                        //Create a Data table
+                        DataTable dataTable = new DataTable();
+
+                        //Fill the Datatable using the Fill Method of the dataAdapter 
+                        //The following things are done by the Fill method
+                        //1. Open the connection
+                        //2. Execute Command
+                        //3. Retrieve the Result
+                        //4. Fill/Store the Retrieve Result in the Data table
+                        //5. Close the connection
+                        dataAdapter.Fill(dataTable);
+
+                        //Display the Data from the Data table
+                        foreach (DataRow row in dataTable.Rows)
+                        {
+                            Console.WriteLine($"ID: {row["EmployeeID"]}, Name: {row["FirstName"]} {row["LastName"]}, Email: {row["Email"]}, Department: {row["Department"]}");
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"An error occurred: {ex.Message}");
                     }
                 }
             }
