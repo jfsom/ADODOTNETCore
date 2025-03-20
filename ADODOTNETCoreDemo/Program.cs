@@ -3,34 +3,39 @@ namespace ADODOTNETCoreDemo
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            string connectionString = "Server=DESKTOP-RUC57UF;Database=OrderDatabase;Trusted_Connection=True;TrustServerCertificate=True;";
             try
             {
+                //I am using Windows Authentication and hence no need to pass the User Id and Password
+                string connectionString = "Server=DESKTOP-RUC57UF;Database=OrderDatabase;Trusted_Connection=True;TrustServerCertificate=True;";
+
+                // Define the SQL query to be executed
+                string query = "SELECT * FROM Customers";
+
+                // Create and open a connection asynchronously
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    // Open the connection to the database
-                    connection.Open();
+                    //Open the Connection
+                    await connection.OpenAsync();
 
-                    // Modify the query to join Customers and Orders tables
-                    string query = @"SELECT c.CustomerID, c.Name, c.Email, c.Address, 
-                                    o.OrderID, o.OrderDate, o.TotalAmount 
-                                    FROM Customers c 
-                                    JOIN Orders o ON c.CustomerID = o.CustomerID;";
-
-                    //Create the Command Object
+                    // Create a SqlCommand to execute the SQL query
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
-                        //SqlDataReader will have both result set
-                        using (SqlDataReader reader = command.ExecuteReader())
+                        // Execute the command and get a SqlDataReader asynchronously
+                        using (SqlDataReader reader = await command.ExecuteReaderAsync())
                         {
-                            Console.WriteLine("Customer and Orders:");
-                            while (reader.Read())
+                            // Read the data asynchronously
+                            while (await reader.ReadAsync())
                             {
-                                // Assuming you are okay with repeating customer info for each order
-                                Console.WriteLine($"CustomerID: {reader["CustomerID"]}, Name: {reader["Name"]}, Email: {reader["Email"]}, Address: {reader["Address"]}");
-                                Console.WriteLine($"\t OrderID: {reader["OrderID"]}, OrderDate: {reader["OrderDate"]}, TotalAmount: {reader["TotalAmount"]}");
+                                // Assuming Column1 is of type int and Column2 is of type string
+                                int column1 = reader.GetInt32(0); //EmployeeID - Type INT
+                                string column2 = reader.GetString(1); //FirstName - Type String
+                                string column3 = reader.GetString(2); //LastName - Type String
+                                string column4 = reader.GetString(3); //Email - Type String
+                                //string column5 = reader.GetString(4); //Department - Type String
+
+                                Console.WriteLine($"EmployeeID: {column1}, FirstName: {column2}, LastName: {column3}, Email: {column4}");
                             }
                         }
                     }
@@ -38,7 +43,7 @@ namespace ADODOTNETCoreDemo
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred: {ex.Message}");
+                Console.WriteLine($"Something went wrong: {ex.Message}");
             }
         }
     }
