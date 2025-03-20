@@ -1,36 +1,45 @@
 ﻿using Microsoft.Data.SqlClient;
-using System.Data;
+//Step1: Import the following Namespace
+using Microsoft.Extensions.Configuration;
 namespace ADODOTNETCoreDemo
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            //Connection String
-            string connectionString = "Server=DESKTOP-RUC57UF;Database=StudentDB;Trusted_Connection=True;TrustServerCertificate=True;";
-            //Creating an Instance of SqlConnection Object
-            SqlConnection connection = new SqlConnection(connectionString);
             try
             {
-                //Open the Connection
-                connection.Open();
-                Console.WriteLine("Connection Established Successfully");
+                //Get the Connection String from appsettings.json file
 
-                // Perform database operations
+                //Step2: Load the Configuration File.
+                var configBuilder = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+
+                // Step3: Get the Section to Read from the Configuration File
+                var configSection = configBuilder.GetSection("ConnectionStrings");
+
+                // Step4: Get the Configuration Values based on the Config key.
+                var connectionString = configSection["SQLServerConnection"] ?? null;
+
+                if (connectionString != null)
+                {
+                    //Creating an Instance of SqlConnection using the using statement
+                    using (SqlConnection connection = new SqlConnection(connectionString))
+                    {
+                        //Open the Connection
+                        connection.Open();
+                        Console.WriteLine("Connection Established Successfully");
+
+                        //Perform the Database Operations
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Connection String is Missing");
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Something Went Wrong: {ex.Message}");
-            }
-            finally
-            {
-                // Ensure the connection is closed even if an exception occurs
-                if (connection.State == ConnectionState.Open)
-                {
-                    connection.Close();
-                    Console.WriteLine("Connection is Closed");
-                }
-                connection.Dispose();
             }
         }
     }
