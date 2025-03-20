@@ -10,28 +10,43 @@ namespace ADODOTNETCoreDemo
                 //I am using Windows Authentication and hence no need to pass the User Id and Password
                 string connectionString = "Server=DESKTOP-RUC57UF;Database=EmployeeDB;Trusted_Connection=True;TrustServerCertificate=True;";
 
-                // Query to Read All Employees Using ExecuteReader
-                string readQuery = "SELECT * FROM Employee";
+                // Query to Insert a New Employee using ExecuteNonQuery
+                string sqlQuery = @"INSERT INTO Employee (FirstName, LastName, Email, Position, Salary) VALUES (@FirstName, @LastName, @Email, @Position, @Salary)";
 
                 //Create an Instance of SqlConnection
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
 
-                    // ExecuteReader Example
-                    Console.WriteLine("ExecuteReader Example");
-                    using (SqlCommand command = new SqlCommand(readQuery, connection))
+                    // ExecuteNonQuery Example
+                    Console.WriteLine("ExecuteNonQuery Example");
+                    using (SqlCommand command = new SqlCommand(sqlQuery, connection))
                     {
-                        using (SqlDataReader reader = command.ExecuteReader())
+                        // Assuming these variables are set from your application's input
+                        string firstName = "Priyanka";
+                        string lastName = "Dewangan";
+                        string email = "Priyanka@Example.com";
+                        string position = "Software Developer";
+                        decimal salary = 75000m;
+
+                        command.Parameters.AddWithValue("@FirstName", firstName);
+                        command.Parameters.AddWithValue("@LastName", lastName);
+                        command.Parameters.AddWithValue("@Email", email);
+                        command.Parameters.AddWithValue("@Position", position);
+                        command.Parameters.AddWithValue("@Salary", salary);
+
+                        int result = command.ExecuteNonQuery();
+                        if (result > 0)
                         {
-                            while (reader.Read())
-                            {
-                                Console.WriteLine($"ID: {reader["EmployeeID"]}, Name: {reader["FirstName"]} {reader["LastName"]}, Email: {reader["Email"]}, Position: {reader["Position"]}, Salary: {reader["Salary"]}");
-                            }
+                            Console.WriteLine("Employee Added Successfully.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("No Employee Was Added.");
                         }
                     } //Command Object will be disposed automatically
+
                 } //Connection Object will be disposed automatically
-                Console.ReadLine();
             }
             catch (Exception ex)
             {
